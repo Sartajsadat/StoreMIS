@@ -11,8 +11,8 @@ React 19 + Vite · MUI · i18next · Recharts · Docker Compose · nginx.
 
 | Phase | Scope | Status |
 |---|---|---|
-| 1 | Requirements & architecture | 📝 awaiting approval |
-| 2 | UI/UX shell (layout, i18n, RTL, themes, shared components) | ⏳ |
+| 1 | Requirements & architecture | ✅ done (owner review pending) |
+| 2 | UI/UX shell (layout, i18n, RTL, themes, shared components) | ✅ done — see [frontend/](frontend/README.md) |
 | 3 | Backend foundation (auth, users, security, audit) | ⏳ |
 | 4 | Products & inventory | ⏳ |
 | 5 | Purchasing | ⏳ |

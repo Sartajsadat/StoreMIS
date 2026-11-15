@@ -1,7 +1,9 @@
 # 05 — REST API Plan
 
 Base path: **`/api/v1`**. JSON throughout. Auth: `Authorization: Bearer <accessToken>`, except
-`/auth/login` and `/auth/refresh`. Each endpoint below is implemented in the module of the same name.
+`/auth/login`, `/auth/refresh` and `/settings/public`. The access token is kept in memory only. The refresh token is an
+**httpOnly cookie** (`storemis_rt`, `SameSite=Strict`, path `/api/v1/auth`), so scripts can never read it.
+**Money and quantities are serialised as JSON strings** (`"10000.00"`) so no precision is lost in JavaScript. Each endpoint below is implemented in the module of the same name.
 The frontend `services/*.js` files will mirror this table one-to-one.
 
 ## 1. Conventions
@@ -44,8 +46,8 @@ Role notation: **A** = Admin, **E** = Entry User baseline, **E:perm** = Entry Us
 ### auth
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| POST | `/auth/login` | public | username/password → access + refresh token, user, preferences |
-| POST | `/auth/refresh` | public (refresh token) | rotate tokens |
+| POST | `/auth/login` | public | username/password → access token + user (with preferences); sets refresh cookie |
+| POST | `/auth/refresh` | public (refresh cookie) | rotate cookie → new access token + user |
 | POST | `/auth/logout` | A, E | revoke refresh token |
 | GET | `/auth/me` | A, E | current user, role, permissions, preferences |
 | POST | `/auth/change-password` | A, E | own password |
