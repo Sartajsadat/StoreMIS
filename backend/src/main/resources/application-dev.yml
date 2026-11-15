@@ -1,0 +1,8 @@
+# Development defaults. A first admin is created with this password if the database has no users.
+storemis:
+  bootstrap-admin:
+    password: ${STOREMIS_ADMIN_PASSWORD:Admin12345}
+
+logging:
+  level:
+    af.storemis: DEBUG

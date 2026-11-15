@@ -1,0 +1,16 @@
+# Development database only. Start with:  docker compose -f deploy/docker-compose.dev.yml up -d
+# The full production stack (backend, nginx, backups) is delivered in Phase 9.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: storemis
+      POSTGRES_USER: storemis
+      POSTGRES_PASSWORD: storemis
+      TZ: Asia/Kabul
+    ports:
+      - "5432:5432"
+    volumes:
+      - storemis-dev-pgdata:/var/lib/postgresql/data
+volumes:
+  storemis-dev-pgdata:

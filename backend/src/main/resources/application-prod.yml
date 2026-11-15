@@ -1,0 +1,10 @@
+# Production: secrets must come from environment variables (see deploy/.env.example).
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: INFO

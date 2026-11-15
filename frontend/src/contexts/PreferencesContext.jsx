@@ -1,10 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import i18n, { DEFAULT_LANGUAGE, directionOf, isSupportedLanguage, LANGUAGES } from '../i18n';
 import { storage } from '../utils/storage';
 
 const PreferencesContext = createContext(null);
 
-const KEYS = { language: 'storemis.language', theme: 'storemis.theme', sidebar: 'storemis.sidebarCollapsed' };
+const KEYS = { language: 'storemis.language', theme: 'storemis.theme', sidebar: 'storemis.sidebarCollapsed', pending: 'storemis.prefsPending' };
 const THEMES = ['light', 'dark'];
 
 const initialTheme = () => {
@@ -18,6 +18,9 @@ const initialTheme = () => {
  * Values are kept in localStorage for an instant first paint, and synced with the user's
  * server-side preferences once signed in (see PreferencesSync).
  * `userRevision` increases only on changes made by the user, so server-applied values are never echoed back.
+ *
+ * A local change is marked "pending" (for the signed-in user, or "anon" on the login page) until the server
+ * confirms it. While pending, the local value is newer than the server copy and wins when the session is restored.
  */
 export function PreferencesProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
@@ -46,7 +49,20 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => storage.set(KEYS.sidebar, String(sidebarCollapsed)), [sidebarCollapsed]);
 
-  const bump = () => setUserRevision((r) => r + 1);
+  const ownerRef = useRef(null);
+
+  const bump = () => {
+    storage.set(KEYS.pending, ownerRef.current ? String(ownerRef.current) : 'anon');
+    setUserRevision((r) => r + 1);
+  };
+
+  /** Called by AuthContext so pending changes are attributed to the right account. */
+  const setOwner = useCallback((userId) => {
+    ownerRef.current = userId ?? null;
+  }, []);
+
+  const hasPendingSync = useCallback(() => Boolean(storage.get(KEYS.pending)), []);
+  const markSynced = useCallback(() => storage.remove(KEYS.pending), []);
 
   const setLanguage = useCallback((code) => {
     if (!isSupportedLanguage(code)) return;
@@ -67,8 +83,18 @@ export function PreferencesProvider({ children }) {
     bump();
   }, []);
 
-  /** Applies preferences from the server (after login) without marking them as user changes. */
-  const applyServerPreferences = useCallback((prefs) => {
+  /**
+   * Applies preferences from the server after sign-in or session restore — unless this browser holds a newer,
+   * not-yet-saved choice for the same user (or one made on the login page), which is then pushed to the server instead.
+   */
+  const applyServerPreferences = useCallback((prefs, userId) => {
+    const pending = storage.get(KEYS.pending);
+    if (pending && (pending === 'anon' || pending === String(userId))) {
+      storage.set(KEYS.pending, String(userId));
+      setUserRevision((r) => r + 1);
+      return;
+    }
+    storage.remove(KEYS.pending);
     if (!prefs) return;
     if (isSupportedLanguage(prefs.language)) setLanguageState(prefs.language);
     if (THEMES.includes(prefs.theme)) setThemeState(prefs.theme);
@@ -97,8 +123,11 @@ export function PreferencesProvider({ children }) {
       setSidebarCollapsed,
       applyServerPreferences,
       applyBusinessDefaults,
+      setOwner,
+      hasPendingSync,
+      markSynced,
     }),
-    [language, direction, themeMode, sidebarCollapsed, userRevision, setLanguage, setThemeMode, toggleTheme, setSidebarCollapsed, applyServerPreferences, applyBusinessDefaults],
+    [language, direction, themeMode, sidebarCollapsed, userRevision, setLanguage, setThemeMode, toggleTheme, setSidebarCollapsed, applyServerPreferences, applyBusinessDefaults, setOwner, hasPendingSync, markSynced],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

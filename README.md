@@ -13,13 +13,23 @@ React 19 + Vite · MUI · i18next · Recharts · Docker Compose · nginx.
 |---|---|---|
 | 1 | Requirements & architecture | ✅ done (owner review pending) |
 | 2 | UI/UX shell (layout, i18n, RTL, themes, shared components) | ✅ done — see [frontend/](frontend/README.md) |
-| 3 | Backend foundation (auth, users, security, audit) | ⏳ |
+| 3 | Backend foundation (auth, users, security, audit) | ✅ done — see [backend/](backend/README.md) |
 | 4 | Products & inventory | ⏳ |
 | 5 | Purchasing | ⏳ |
 | 6 | Sales & POS | ⏳ |
 | 7 | Finance & returns | ⏳ |
 | 8 | Dashboard & reports | ⏳ |
 | 9 | Testing & deployment | ⏳ |
+
+## Quick start (development)
+
+```bash
+docker compose -f deploy/docker-compose.dev.yml up -d     # PostgreSQL 16
+cd backend && mvn spring-boot:run                          # API on :8080
+cd frontend && npm install && npm run dev                  # UI on http://localhost:5173
+```
+
+Sign in as `admin` / `Admin12345` (development only). You will be asked to choose a new password.
 
 ## Design documents (Phase 1)
 

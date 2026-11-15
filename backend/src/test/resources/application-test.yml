@@ -1,0 +1,12 @@
+storemis:
+  bootstrap-admin:
+    username: admin
+    password: Admin12345
+  files:
+    dir: ${java.io.tmpdir}/storemis-test-files
+  security:
+    max-failed-attempts: 5
+    lock-minutes: 15
+logging:
+  level:
+    af.storemis: INFO

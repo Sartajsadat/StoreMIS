@@ -16,18 +16,19 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [status, setStatus] = useState('loading');
   const [user, setUser] = useState(null);
-  const { applyServerPreferences } = usePreferences();
+  const { applyServerPreferences, setOwner } = usePreferences();
   const queryClient = useQueryClient();
   const notify = useNotify();
   const { t } = useTranslation();
 
   const signIn = useCallback(
     (u) => {
+      setOwner(u?.id ?? null);
       setUser(u);
       setStatus(u ? 'authenticated' : 'anonymous');
-      if (u?.preferences) applyServerPreferences(u.preferences);
+      if (u) applyServerPreferences(u.preferences, u.id);
     },
-    [applyServerPreferences],
+    [applyServerPreferences, setOwner],
   );
 
   useEffect(() => {
@@ -43,12 +44,13 @@ export function AuthProvider({ children }) {
   useEffect(
     () =>
       tokenStore.onSessionExpired(() => {
+        setOwner(null);
         setUser(null);
         setStatus('anonymous');
         queryClient.clear();
         notify.warning(t('auth.sessionExpired'));
       }),
-    [queryClient, notify, t],
+    [queryClient, notify, t, setOwner],
   );
 
   const login = useCallback(
@@ -64,11 +66,12 @@ export function AuthProvider({ children }) {
     try {
       await authService.logout();
     } finally {
+      setOwner(null);
       setUser(null);
       setStatus('anonymous');
       queryClient.clear();
     }
-  }, [queryClient]);
+  }, [queryClient, setOwner]);
 
   const reloadUser = useCallback(async () => {
     const u = await authService.me();
