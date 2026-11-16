@@ -9,6 +9,7 @@ import {
 import PrintOutlined from '@mui/icons-material/PrintOutlined';
 import BlockOutlined from '@mui/icons-material/BlockOutlined';
 import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined';
+import AssignmentReturnOutlined from '@mui/icons-material/AssignmentReturnOutlined';
 import PageHeader from '../../components/display/PageHeader';
 import PageLoader from '../../components/feedback/PageLoader';
 import FormDialog from '../../components/form/FormDialog';
@@ -18,6 +19,8 @@ import StatusChip from '../../components/display/StatusChip';
 import UserText from '../../components/display/UserText';
 import Ltr from '../../components/display/Ltr';
 import CustomerPaymentDialog from '../customers/CustomerPaymentDialog';
+import ReturnDialog from '../returns/ReturnDialog';
+import DocumentReturns from '../returns/DocumentReturns';
 import { salesService } from '../../services/salesService';
 import { errorMessage } from '../../services/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
@@ -78,7 +81,7 @@ export default function SaleDetailPage() {
   const q = useQuery({ queryKey: ['sales', 'detail', id], queryFn: () => salesService.get(id) });
   if (q.isLoading || !q.data) return <PageLoader />;
   const s = q.data;
-  const refresh = () => ['sales', 'products', 'inventory', 'customers', 'cash-accounts', 'customer-payments'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
+  const refresh = () => ['sales', 'products', 'inventory', 'customers', 'cash-accounts', 'customer-payments', 'returns'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
   const confirmed = s.status === 'CONFIRMED';
   const foreign = s.currency !== settings.baseCurrency;
   const profit = s.totalCostBase != null ? dec(s.grandTotal).times(dec(s.exchangeRate)).minus(dec(s.totalCostBase)) : null;
@@ -98,7 +101,12 @@ export default function SaleDetailPage() {
             <Button variant="outlined" startIcon={<PrintOutlined />} onClick={() => window.open(`/print/sales/${s.id}?autoprint=1`, '_blank', 'noopener,width=900,height=900')}>
               {t('sales.print')}
             </Button>
-            {confirmed && isAdmin && (
+            {confirmed && hasPermission('PROCESS_SALES_RETURNS') && s.items.some((i) => Number(i.returnedQuantity) < Number(i.quantity)) && (
+              <Button variant="outlined" startIcon={<AssignmentReturnOutlined />} onClick={() => setDialog('return')}>
+                {t('returns.sales.new')}
+              </Button>
+            )}
+            {confirmed && isAdmin && Number(s.returnedAmount) === 0 && (
               <Button variant="outlined" color="error" startIcon={<BlockOutlined />} onClick={() => setDialog('cancel')}>
                 {t('sales.cancel')}
               </Button>
@@ -145,6 +153,11 @@ export default function SaleDetailPage() {
                       </TableCell>
                       <TableCell align="right">
                         <QtyText value={i.quantity} unit={i.unitName} />
+                        {Number(i.returnedQuantity) > 0 && (
+                          <Typography variant="caption" color="warning.main" component="div">
+                            {t('returns.returnedQty')}: <QtyText value={i.returnedQuantity} unit={i.unitName} />
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell align="right">
                         <MoneyText amount={i.unitPrice} currency={s.currency} />
@@ -207,6 +220,7 @@ export default function SaleDetailPage() {
               )}
             </CardContent>
           </Card>
+          <DocumentReturns kind="sales" documentId={s.id} />
         </Grid>
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card>
@@ -226,6 +240,7 @@ export default function SaleDetailPage() {
                 {Number(s.overallDiscount) > 0 && <Info label={t('sales.overallDiscount')} value={<MoneyText amount={s.overallDiscount} currency={s.currency} />} />}
                 <Info label={<b>{t('sales.grandTotal')}</b>} value={<MoneyText amount={s.grandTotal} currency={s.currency} variant="h6" />} />
                 <Info label={t('sales.paid')} value={<MoneyText amount={s.amountPaid} currency={s.currency} />} />
+                {Number(s.returnedAmount) > 0 && <Info label={t('returns.alreadyReturned')} value={<MoneyText amount={s.returnedAmount} currency={s.currency} />} />}
                 <Info label={t('sales.due')} value={<MoneyText amount={s.balanceDue} currency={s.currency} fontWeight={700} />} />
                 {profit && confirmed && <Info label={t('sales.grossProfit')} value={<MoneyText amount={profit.toFixed(2)} currency={settings.baseCurrency} />} />}
                 {s.notes && (
@@ -239,6 +254,13 @@ export default function SaleDetailPage() {
         </Grid>
       </Grid>
       <CancelDialog open={dialog === 'cancel'} sale={s} onClose={() => setDialog(null)} onDone={() => (setDialog(null), notify.success(t('sales.cancelled')), refresh())} />
+      <ReturnDialog
+        open={dialog === 'return'}
+        kind="sales"
+        documentId={s.id}
+        onClose={() => setDialog(null)}
+        onSaved={(r) => (setDialog(null), notify.success(t('returns.saved', { number: r.returnNo })), refresh())}
+      />
       <CustomerPaymentDialog
         open={dialog === 'pay'}
         initialCustomer={{ id: s.customerId, name: s.customerName, walkIn: s.walkIn }}

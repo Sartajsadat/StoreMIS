@@ -141,4 +141,13 @@ public class SaleItem {
     public BigDecimal getReturnedQuantity() {
         return returnedQuantity;
     }
+
+    /** What can still be returned. */
+    public BigDecimal getReturnableQuantity() {
+        return getQuantity().subtract(returnedQuantity);
+    }
+
+    public void addReturned(BigDecimal quantity) {
+        this.returnedQuantity = this.returnedQuantity.add(quantity);
+    }
 }

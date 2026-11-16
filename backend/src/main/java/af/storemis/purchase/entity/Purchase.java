@@ -69,6 +69,9 @@ public class Purchase extends AuditableEntity {
     @Column(name = "returned_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal returnedAmount = BigDecimal.ZERO;
 
+    @Column(name = "return_settled_amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal returnSettledAmount = BigDecimal.ZERO;
+
     @Column(name = "balance_due", nullable = false, precision = 19, scale = 2)
     private BigDecimal balanceDue = BigDecimal.ZERO;
 
@@ -144,9 +147,23 @@ public class Purchase extends AuditableEntity {
         refreshBalance();
     }
 
+    /**
+     * Goods came back worth {@code total}; {@code settled} of it was paid back (cash refund or credit) instead of
+     * reducing what is still owed.
+     */
+    public void applyReturn(BigDecimal total, BigDecimal settled) {
+        this.returnedAmount = this.returnedAmount.add(total);
+        this.returnSettledAmount = this.returnSettledAmount.add(settled);
+        refreshBalance();
+    }
+
+    public BigDecimal getReturnSettledAmount() {
+        return returnSettledAmount;
+    }
+
     private void refreshBalance() {
         if (status == PurchaseStatus.CANCELLED) return;
-        this.balanceDue = grandTotal.subtract(returnedAmount).subtract(amountPaid).max(BigDecimal.ZERO);
+        this.balanceDue = grandTotal.subtract(returnedAmount).subtract(amountPaid).add(returnSettledAmount).max(BigDecimal.ZERO);
         this.paymentStatus = balanceDue.signum() <= 0 ? "PAID" : amountPaid.signum() == 0 ? "UNPAID" : "PARTIALLY_PAID";
     }
 

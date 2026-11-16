@@ -15,6 +15,8 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long>, JpaSp
     @Query("select p from Purchase p where p.id = :id")
     Optional<Purchase> lock(Long id);
 
+    Optional<Purchase> findByPurchaseNoIgnoreCase(String purchaseNo);
+
     /** Open (unpaid or partly paid) confirmed purchases of a supplier, oldest first, locked for allocation. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

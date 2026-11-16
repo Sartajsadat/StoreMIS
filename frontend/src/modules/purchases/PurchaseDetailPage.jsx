@@ -11,6 +11,7 @@ import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import BlockOutlined from '@mui/icons-material/BlockOutlined';
 import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined';
 import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
+import AssignmentReturnOutlined from '@mui/icons-material/AssignmentReturnOutlined';
 import PageHeader from '../../components/display/PageHeader';
 import PageLoader from '../../components/feedback/PageLoader';
 import ConfirmDialog from '../../components/feedback/ConfirmDialog';
@@ -21,6 +22,8 @@ import StatusChip from '../../components/display/StatusChip';
 import UserText from '../../components/display/UserText';
 import Ltr from '../../components/display/Ltr';
 import SupplierPaymentDialog from '../suppliers/SupplierPaymentDialog';
+import ReturnDialog from '../returns/ReturnDialog';
+import DocumentReturns from '../returns/DocumentReturns';
 import { purchaseService } from '../../services/purchaseService';
 import { errorMessage } from '../../services/apiClient';
 import { useAuth } from '../../contexts/AuthContext';
@@ -81,7 +84,7 @@ export default function PurchaseDetailPage() {
   const q = useQuery({ queryKey: ['purchases', 'detail', id], queryFn: () => purchaseService.get(id) });
   if (q.isLoading || !q.data) return <PageLoader />;
   const p = q.data;
-  const refresh = () => ['purchases', 'products', 'inventory', 'suppliers', 'cash-accounts', 'supplier-payments'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
+  const refresh = () => ['purchases', 'products', 'inventory', 'suppliers', 'cash-accounts', 'supplier-payments', 'returns'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
   const isDraft = p.status === 'DRAFT';
   const isConfirmed = p.status === 'CONFIRMED';
   const foreign = p.currency !== settings.baseCurrency;
@@ -108,7 +111,12 @@ export default function PurchaseDetailPage() {
                 </Button>
               </>
             )}
-            {isConfirmed && isAdmin && (
+            {isConfirmed && isAdmin && p.items.some((i) => Number(i.returnedQuantity) < Number(i.quantity)) && (
+              <Button variant="outlined" startIcon={<AssignmentReturnOutlined />} onClick={() => setDialog('return')}>
+                {t('returns.purchase.new')}
+              </Button>
+            )}
+            {isConfirmed && isAdmin && Number(p.returnedAmount) === 0 && (
               <Button variant="outlined" color="error" startIcon={<BlockOutlined />} onClick={() => setDialog('cancel')}>
                 {t('purchases.cancel')}
               </Button>
@@ -155,6 +163,11 @@ export default function PurchaseDetailPage() {
                       </TableCell>
                       <TableCell align="right">
                         <QtyText value={i.quantity} unit={i.unitName} />
+                        {Number(i.returnedQuantity) > 0 && (
+                          <Typography variant="caption" color="warning.main" component="div">
+                            {t('returns.returnedQty')}: <QtyText value={i.returnedQuantity} unit={i.unitName} />
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell align="right">
                         <Ltr>{formatNumber(i.unitCost, { maxDecimals: 4 })}</Ltr>
@@ -217,6 +230,7 @@ export default function PurchaseDetailPage() {
               </CardContent>
             </Card>
           )}
+          {!isDraft && <DocumentReturns kind="purchase" documentId={p.id} />}
         </Grid>
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card>
@@ -236,6 +250,7 @@ export default function PurchaseDetailPage() {
                 {!isDraft && (
                   <>
                     <Info label={t('purchases.paid')} value={<MoneyText amount={p.amountPaid} currency={p.currency} />} />
+                    {Number(p.returnedAmount) > 0 && <Info label={t('returns.alreadyReturned')} value={<MoneyText amount={p.returnedAmount} currency={p.currency} />} />}
                     <Info label={t('purchases.due')} value={<MoneyText amount={p.balanceDue} currency={p.currency} fontWeight={700} />} />
                   </>
                 )}
@@ -274,6 +289,17 @@ export default function PurchaseDetailPage() {
         onDone={() => {
           setDialog(null);
           notify.success(t('purchases.cancelled'));
+          refresh();
+        }}
+      />
+      <ReturnDialog
+        open={dialog === 'return'}
+        kind="purchase"
+        documentId={p.id}
+        onClose={() => setDialog(null)}
+        onSaved={(r) => {
+          setDialog(null);
+          notify.success(t('returns.saved', { number: r.returnNo }));
           refresh();
         }}
       />

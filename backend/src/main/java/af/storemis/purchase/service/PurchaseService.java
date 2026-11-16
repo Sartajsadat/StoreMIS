@@ -4,6 +4,7 @@ import af.storemis.audit.entity.AuditAction;
 import af.storemis.audit.entity.AuditModule;
 import af.storemis.audit.service.AuditEvent;
 import af.storemis.audit.service.AuditService;
+import af.storemis.cash.service.CashPostingService;
 import af.storemis.common.exception.BusinessException;
 import af.storemis.common.exception.ErrorCode;
 import af.storemis.common.exception.NotFoundException;
@@ -69,10 +70,13 @@ public class PurchaseService {
     private final UserDirectory users;
     private final AuditService audit;
     private final BusinessClock clock;
+    private final CashPostingService dayGuard;
 
     public PurchaseService(PurchaseRepository purchases, ProductRepository products, SupplierService suppliers, SupplierLedgerService ledger,
             SupplierPaymentService payments, SupplierPaymentAllocationRepository allocations, InventoryPostingService inventory, CurrencyService currency,
-            DocumentNumberService numbers, UserDirectory users, AuditService audit, BusinessClock clock) {
+            DocumentNumberService numbers, UserDirectory users, AuditService audit, BusinessClock clock,
+            CashPostingService dayGuard) {
+        this.dayGuard = dayGuard;
         this.purchases = purchases;
         this.products = products;
         this.suppliers = suppliers;
@@ -118,6 +122,7 @@ public class PurchaseService {
         Purchase p = purchases.lock(id).orElseThrow(() -> new NotFoundException("Purchase", id));
         if (p.getStatus() == PurchaseStatus.CONFIRMED) return toResponse(p); // a retried request changes nothing
         if (p.getStatus() != PurchaseStatus.DRAFT) throw new BusinessException(ErrorCode.INVALID_STATE, Map.of("status", p.getStatus().name()));
+        dayGuard.ensureDayOpen(clock.today());
         Supplier supplier = suppliers.requireActive(p.getSupplierId());
         BigDecimal paid = Money.amount(r == null ? null : r.amountPaid());
         if (paid.compareTo(p.getGrandTotal()) > 0) throw new BusinessException(ErrorCode.AMOUNT_EXCEEDS_TOTAL, Map.of("total", p.getGrandTotal().toPlainString()));

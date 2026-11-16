@@ -17,7 +17,7 @@ React 19 + Vite · MUI · i18next · Recharts · Docker Compose · nginx.
 | 4 | Products & inventory | ✅ done |
 | 5 | Purchasing (+ cash accounts, exchange rates) | ✅ done |
 | 6 | Sales & POS (+ customers, receipts, customer payments) | ✅ done |
-| 7 | Finance & returns | ⏳ |
+| 7 | Finance & returns (expenses, transfers, exchange, daily closing, sales/purchase returns) | ✅ done |
 | 8 | Dashboard & reports | ⏳ |
 | 9 | Testing & deployment | ⏳ |
 

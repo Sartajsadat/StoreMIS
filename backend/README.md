@@ -60,4 +60,10 @@ Implemented so far:
   weighted average per line) and customer payments in `payment` (at the till in several currencies, later
   collections, customer credit, reversal), plus document prefix settings in `numbering`.
 
+- Phase 7: `expense` (categories, expenses paid from a cash account, receipt attachments, admin void),
+  `cash` operations (owner deposit/withdrawal, same-currency transfers, currency exchange at the deal's rate) and
+  the daily cash closing (expected vs counted, CLOSING_DIFFERENCE, day lock with `DAY_CLOSED`, admin reopen), and
+  `returns` (sales returns with sellable/damaged lines, purchase returns; settled against the balance due first,
+  then refunded in cash or kept as credit).
+
 `mvn spring-boot:run` starts the API with a 512 MB memory limit (set in `pom.xml`), so it runs on small store PCs.

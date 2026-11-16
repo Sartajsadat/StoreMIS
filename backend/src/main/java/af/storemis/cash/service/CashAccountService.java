@@ -92,11 +92,18 @@ public class CashAccountService {
         Page<CashTransaction> page = transactions.findAll(spec, pageable);
         Map<Long, CashAccount> acc = accounts.findAll().stream().collect(Collectors.toMap(CashAccount::getId, Function.identity()));
         Map<Long, String> names = users.names(page.getContent().stream().map(CashTransaction::getCreatedBy).toList());
-        return page.map(t -> {
-            CashAccount a = acc.get(t.getCashAccountId());
-            return new CashTransactionResponse(t.getId(), t.getTxnNo(), a.getId(), a.getName(), a.getCurrencyCode(), t.getTxnType(), t.getDirection(),
-                    t.getAmount(), t.getBalanceAfter(), t.getSourceType(), t.getSourceId(), t.getReferenceNo(), t.getBusinessDate(), t.getDescription(),
-                    t.getCreatedAt(), names.get(t.getCreatedBy()));
-        });
+        return page.map(t -> toResponse(t, acc.get(t.getCashAccountId()), names));
+    }
+
+    @Transactional(readOnly = true)
+    public CashTransactionResponse toResponse(CashTransaction t) {
+        CashAccount a = accounts.findById(t.getCashAccountId()).orElseThrow();
+        return toResponse(t, a, users.names(t.getCreatedBy() == null ? List.of() : List.of(t.getCreatedBy())));
+    }
+
+    private static CashTransactionResponse toResponse(CashTransaction t, CashAccount a, Map<Long, String> names) {
+        return new CashTransactionResponse(t.getId(), t.getTxnNo(), a.getId(), a.getName(), a.getCurrencyCode(), t.getTxnType(), t.getDirection(),
+                t.getAmount(), t.getBalanceAfter(), t.getSourceType(), t.getSourceId(), t.getReferenceNo(), t.getBusinessDate(), t.getDescription(),
+                t.getCreatedAt(), names.get(t.getCreatedBy()));
     }
 }

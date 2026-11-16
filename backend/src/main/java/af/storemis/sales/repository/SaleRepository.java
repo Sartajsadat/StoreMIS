@@ -19,6 +19,8 @@ public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificat
 
     Optional<Sale> findByClientRequestId(UUID clientRequestId);
 
+    Optional<Sale> findByInvoiceNoIgnoreCase(String invoiceNo);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select s from Sale s where s.customerId = :customerId and s.status = af.storemis.sales.entity.SaleStatus.CONFIRMED

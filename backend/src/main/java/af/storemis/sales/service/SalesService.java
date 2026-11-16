@@ -6,6 +6,7 @@ import af.storemis.audit.service.AuditEvent;
 import af.storemis.audit.service.AuditService;
 import af.storemis.cash.entity.CashAccount;
 import af.storemis.cash.repository.CashAccountRepository;
+import af.storemis.cash.service.CashPostingService;
 import af.storemis.common.exception.BusinessException;
 import af.storemis.common.exception.ErrorCode;
 import af.storemis.common.exception.NotFoundException;
@@ -88,11 +89,14 @@ public class SalesService {
     private final UserDirectory users;
     private final AuditService audit;
     private final BusinessClock clock;
+    private final CashPostingService dayGuard;
 
     public SalesService(SaleRepository sales, ProductRepository products, ProductStockRepository stock, CustomerService customers,
             CustomerLedgerService ledger, CustomerPaymentService payments, CustomerPaymentAllocationRepository allocations,
             CashAccountRepository cashAccounts, InventoryPostingService inventory, CurrencyService currency, SettingsService settings,
-            DocumentNumberService numbers, UserDirectory users, AuditService audit, BusinessClock clock) {
+            DocumentNumberService numbers, UserDirectory users, AuditService audit, BusinessClock clock,
+            CashPostingService dayGuard) {
+        this.dayGuard = dayGuard;
         this.sales = sales;
         this.products = products;
         this.stock = stock;
@@ -301,6 +305,7 @@ public class SalesService {
     }
 
     private void post(Sale sale, List<PaymentLine> paymentLines, UUID clientRequestId) {
+        dayGuard.ensureDayOpen(clock.today());
         Customer customer = customers.get(sale.getCustomerId());
         String number = numbers.next(DocumentType.SALE);
         boolean blockBelowCost = settings.getEntity().isBlockSaleBelowCost();

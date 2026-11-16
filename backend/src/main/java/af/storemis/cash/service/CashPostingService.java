@@ -5,6 +5,7 @@ import af.storemis.cash.entity.CashDirection;
 import af.storemis.cash.entity.CashTransaction;
 import af.storemis.cash.entity.CashTxnType;
 import af.storemis.cash.repository.CashAccountRepository;
+import af.storemis.cash.repository.CashClosingRepository;
 import af.storemis.cash.repository.CashTransactionRepository;
 import af.storemis.common.exception.BusinessException;
 import af.storemis.common.exception.ErrorCode;
@@ -16,6 +17,7 @@ import af.storemis.numbering.DocumentNumberService;
 import af.storemis.numbering.DocumentType;
 import af.storemis.settings.service.SettingsService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -37,9 +39,11 @@ public class CashPostingService {
     private final DocumentNumberService numbers;
     private final SettingsService settings;
     private final BusinessClock clock;
+    private final CashClosingRepository closings;
 
     public CashPostingService(CashAccountRepository accounts, CashTransactionRepository transactions, DocumentNumberService numbers,
-            SettingsService settings, BusinessClock clock) {
+            SettingsService settings, BusinessClock clock, CashClosingRepository closings) {
+        this.closings = closings;
         this.accounts = accounts;
         this.transactions = transactions;
         this.numbers = numbers;
@@ -64,9 +68,31 @@ public class CashPostingService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED, Map.of("field", "cashAccountId")));
     }
 
+    /** Refuses postings dated on or before the last closed business day ({@code DAY_CLOSED}). */
+    public void ensureDayOpen(LocalDate businessDate) {
+        closings.lastClosedDate().ifPresent(last -> {
+            if (!businessDate.isAfter(last)) throw new BusinessException(ErrorCode.DAY_CLOSED, Map.of("date", last.toString()));
+        });
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public CashTransaction post(Long accountId, CashDirection direction, BigDecimal amount, CashTxnType type, BigDecimal exchangeRate, CashSource source,
             String description) {
+        LocalDate today = clock.today();
+        ensureDayOpen(today);
+        return write(accountId, direction, amount, type, exchangeRate, source, description, today);
+    }
+
+    /** Posting dated to a specific business day; used by the daily closing itself (the day is not closed yet). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public CashTransaction postOn(LocalDate businessDate, Long accountId, CashDirection direction, BigDecimal amount, CashTxnType type,
+            BigDecimal exchangeRate, CashSource source, String description) {
+        ensureDayOpen(businessDate);
+        return write(accountId, direction, amount, type, exchangeRate, source, description, businessDate);
+    }
+
+    private CashTransaction write(Long accountId, CashDirection direction, BigDecimal amount, CashTxnType type, BigDecimal exchangeRate,
+            CashSource source, String description, LocalDate businessDate) {
         BigDecimal value = Money.amount(amount);
         if (value.signum() <= 0) throw new BusinessException(ErrorCode.VALIDATION_FAILED, Map.of("field", "amount"));
         CashAccount account = accounts.lock(accountId).orElseThrow(() -> new NotFoundException("CashAccount", accountId));
@@ -77,7 +103,7 @@ public class CashPostingService {
         }
         account.applyBalance(after);
         return transactions.save(new CashTransaction(numbers.next(DocumentType.CASH_TXN), account.getId(), type, direction, value, after,
-                exchangeRate == null ? BigDecimal.ONE : exchangeRate, source.type(), source.id(), source.referenceNo(), null, clock.today(),
+                exchangeRate == null ? BigDecimal.ONE : exchangeRate, source.type(), source.id(), source.referenceNo(), null, businessDate,
                 description, clock.now(), SecurityUtils.currentUserId().orElse(null)));
     }
 }

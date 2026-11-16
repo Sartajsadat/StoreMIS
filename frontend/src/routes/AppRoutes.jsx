@@ -38,6 +38,9 @@ import SalesHistoryPage from '../modules/sales/SalesHistoryPage';
 import SaleDetailPage from '../modules/sales/SaleDetailPage';
 import ReceiptPage from '../modules/print/ReceiptPage';
 import InvoiceSettingsPage from '../modules/settings/InvoiceSettingsPage';
+import ExpensesPage from '../modules/finance/ExpensesPage';
+import CashClosingPage from '../modules/finance/CashClosingPage';
+import { PurchaseReturnsPage, SalesReturnsPage } from '../modules/returns/ReturnsPage';
 import { EXTRA_PAGES } from './extraPages';
 
 const UiKitPage = lazy(() => import('../modules/dev/UiKitPage'));
@@ -72,6 +75,10 @@ const PAGES = {
   salesHistory: SalesHistoryPage,
   saleDetail: SaleDetailPage,
   invoiceSettings: InvoiceSettingsPage,
+  salesReturns: SalesReturnsPage,
+  purchaseReturns: PurchaseReturnsPage,
+  expenses: ExpensesPage,
+  dailyCashClosing: CashClosingPage,
 };
 
 export default function AppRoutes() {
