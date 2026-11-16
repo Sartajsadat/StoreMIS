@@ -1,0 +1,89 @@
+# Store MIS — production stack for the store server.
+#   1. Run scripts/install.sh (Linux) or scripts/install.ps1 (Windows). It creates .env with random secrets
+#      and starts everything. Or copy .env.example to .env, fill it in and run: docker compose up -d --build
+#   2. Open http://<server-ip>/ from any PC on the shop network.
+name: storemis
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-storemis}
+      POSTGRES_USER: ${DB_USER:-storemis}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      TZ: Asia/Kabul
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # No published port: only the backend and the backup service can reach the database.
+
+  backend:
+    build: ../backend
+    image: storemis-backend:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      STOREMIS_DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-storemis}
+      STOREMIS_DB_USER: ${DB_USER:-storemis}
+      STOREMIS_DB_PASSWORD: ${DB_PASSWORD}
+      STOREMIS_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      STOREMIS_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      STOREMIS_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      STOREMIS_COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=60 -XX:+ExitOnOutOfMemoryError}
+    volumes:
+      - uploads:/data/files
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  web:
+    build: ../frontend
+    image: storemis-web:latest
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/storemis.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/security-headers.conf:/etc/nginx/snippets/security-headers.conf:ro
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  backup:
+    build: ./backup
+    image: storemis-backup:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGDATABASE: ${DB_NAME:-storemis}
+      PGUSER: ${DB_USER:-storemis}
+      PGPASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Kabul
+      BACKUP_CRON: ${BACKUP_CRON:-30 21 * * *}
+      KEEP_DAILY: ${KEEP_DAILY:-14}
+      KEEP_WEEKLY: ${KEEP_WEEKLY:-8}
+      KEEP_MONTHLY: ${KEEP_MONTHLY:-12}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - uploads:/data/files
+      # Optional second copy, e.g. a USB disk: set EXTERNAL_BACKUP_DIR in .env.
+      - ${EXTERNAL_BACKUP_DIR:-./backups-external}:/external
+
+volumes:
+  pgdata:
+  uploads:

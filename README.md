@@ -19,7 +19,19 @@ React 19 + Vite · MUI · i18next · Recharts · Docker Compose · nginx.
 | 6 | Sales & POS (+ customers, receipts, customer payments) | ✅ done |
 | 7 | Finance & returns (expenses, transfers, exchange, daily closing, sales/purchase returns) | ✅ done |
 | 8 | Dashboard & reports (17 reports, P&L, Excel / PDF / print, My Day) | ✅ done |
-| 9 | Testing & deployment | ⏳ |
+| 9 | Testing & deployment (Docker stack, backups, guides, CI) | ✅ done |
+
+## Install on the store server (production)
+
+```bash
+git clone https://github.com/Sartajsadat/StoreMIS.git
+cd StoreMIS
+bash deploy/scripts/install.sh        # Windows: powershell -ExecutionPolicy Bypass -File deploy\scripts\install.ps1
+```
+
+Then open `http://<server-ip>/` on the shop PCs. Full instructions, backups, restore and updates:
+[deployment guide](docs/phase-9/deployment-guide.md). Before going live, run the
+[acceptance checklist](docs/phase-9/acceptance-checklist.md).
 
 ## Quick start (development)
 
@@ -39,3 +51,8 @@ Sign in as `admin` / `Admin12345` (development only). You will be asked to choos
 4. [Business workflows & posting rules](docs/phase-1/04-business-workflows.md)
 5. [REST API plan](docs/phase-1/05-api-plan.md)
 6. [Project folder structure](docs/phase-1/06-project-structure.md)
+
+## Operations (Phase 9)
+
+- [Deployment and operations guide](docs/phase-9/deployment-guide.md)
+- [Acceptance test checklist](docs/phase-9/acceptance-checklist.md)
