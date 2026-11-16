@@ -353,7 +353,7 @@ export default function PurchaseFormPage() {
                   <TextField
                     {...numInput(paid, setPaid, 2)}
                     label={t('purchases.amountPaid')}
-                    error={remaining.isNegative()}
+                    error={remaining.lt(0)}
                     slotProps={{
                       htmlInput: { inputMode: 'decimal', dir: 'ltr', style: { textAlign: 'end' } },
                       input: {
@@ -374,7 +374,7 @@ export default function PurchaseFormPage() {
                       </MenuItem>
                     ))}
                   </TextField>
-                  <Row label={t('purchases.remaining')} value={<MoneyText amount={Decimal0(remaining)} currency={currency} fontWeight={700} color={remaining.isPositive() && !remaining.isZero() ? 'warning.main' : undefined} />} />
+                  <Row label={t('purchases.remaining')} value={<MoneyText amount={Decimal0(remaining)} currency={currency} fontWeight={700} color={remaining.gt(0) && !remaining.isZero() ? 'warning.main' : undefined} />} />
                 </Stack>
               </CardContent>
             </Card>
@@ -395,7 +395,7 @@ export default function PurchaseFormPage() {
   );
 }
 
-const Decimal0 = (d) => (d.isNegative() ? '0.00' : d.toFixed(2));
+const Decimal0 = (d) => (d.lt(0) ? '0.00' : d.toFixed(2));
 
 function Row({ label, value }) {
   return (

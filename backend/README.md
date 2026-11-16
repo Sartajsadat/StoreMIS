@@ -55,4 +55,9 @@ Implemented so far:
   spreads the overall discount into landed cost) and `payment` (supplier payments with oldest-first allocation,
   advances, cross-currency payments, reversal).
 
+- Phase 6: `customer` (Walk-in Customer, per-currency receivable ledger, statements, opening balances),
+  `sales` (one-step POS confirm, held carts, admin cancellation, receipts, price hints; COGS captured from the
+  weighted average per line) and customer payments in `payment` (at the till in several currencies, later
+  collections, customer credit, reversal), plus document prefix settings in `numbering`.
+
 `mvn spring-boot:run` starts the API with a 512 MB memory limit (set in `pom.xml`), so it runs on small store PCs.

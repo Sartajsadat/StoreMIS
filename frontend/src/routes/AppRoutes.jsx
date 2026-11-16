@@ -30,6 +30,14 @@ import PurchaseDetailPage from '../modules/purchases/PurchaseDetailPage';
 import CashAccountsPage from '../modules/finance/CashAccountsPage';
 import CashTransactionsPage from '../modules/finance/CashTransactionsPage';
 import CurrencySettingsPage from '../modules/settings/CurrencySettingsPage';
+import CustomersPage from '../modules/customers/CustomersPage';
+import CustomerDetailPage from '../modules/customers/CustomerDetailPage';
+import CustomerPaymentsPage from '../modules/customers/CustomerPaymentsPage';
+import PosPage from '../modules/sales/PosPage';
+import SalesHistoryPage from '../modules/sales/SalesHistoryPage';
+import SaleDetailPage from '../modules/sales/SaleDetailPage';
+import ReceiptPage from '../modules/print/ReceiptPage';
+import InvoiceSettingsPage from '../modules/settings/InvoiceSettingsPage';
 import { EXTRA_PAGES } from './extraPages';
 
 const UiKitPage = lazy(() => import('../modules/dev/UiKitPage'));
@@ -57,6 +65,13 @@ const PAGES = {
   supplierDetail: SupplierDetailPage,
   purchaseDetail: PurchaseDetailPage,
   purchaseEdit: PurchaseFormPage,
+  customerList: CustomersPage,
+  customerDetail: CustomerDetailPage,
+  customerPayments: CustomerPaymentsPage,
+  newSale: PosPage,
+  salesHistory: SalesHistoryPage,
+  saleDetail: SaleDetailPage,
+  invoiceSettings: InvoiceSettingsPage,
 };
 
 export default function AppRoutes() {
@@ -72,6 +87,7 @@ export default function AppRoutes() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
+          <Route path="/print/sales/:id" element={<ReceiptPage />} />
           <Route element={<AppLayout />}>
             {leaves.map((item) => {
               const Page = PAGES[item.key];

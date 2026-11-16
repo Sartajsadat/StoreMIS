@@ -16,10 +16,11 @@ import Ltr from '../display/Ltr';
  * Search-as-you-type product selector (name, code or brand). Pressing Enter on an exact code — e.g. from a
  * barcode scanner — selects that product immediately. Reused by adjustments now and by POS / purchases later.
  */
-export default function ProductPicker({ value, onChange, label, autoFocus, error, helperText, disabled, size = 'small' }) {
+export default function ProductPicker({ value, onChange, label, autoFocus, error, helperText, disabled, size = 'small', inputRef, clearOnSelect }) {
   const { t } = useTranslation();
   const unitLabel = useUnitLabel();
   const [input, setInput] = useState('');
+  const [open, setOpen] = useState(false);
   const q = useDebounce(input.trim(), 200);
   const results = useQuery({ queryKey: ['product-search', q], queryFn: () => productService.search(q, 20), enabled: q.length > 0, staleTime: 10000 });
 
@@ -31,8 +32,14 @@ export default function ProductPicker({ value, onChange, label, autoFocus, error
 
   return (
     <Autocomplete
+      open={open && input.trim().length > 0}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
       value={value ?? null}
-      onChange={(_e, v) => onChange(v)}
+      onChange={(_e, v) => {
+        onChange(v);
+        if (clearOnSelect) setInput('');
+      }}
       inputValue={input}
       onInputChange={(_e, v, reason) => {
         if (reason !== 'reset') setInput(v);
@@ -54,6 +61,7 @@ export default function ProductPicker({ value, onChange, label, autoFocus, error
             e.preventDefault();
             e.defaultMuiPrevented = true;
             onChange(exact);
+            if (clearOnSelect) setInput('');
           }
         }
       }}
@@ -89,6 +97,7 @@ export default function ProductPicker({ value, onChange, label, autoFocus, error
           label={label ?? t('inventory.product')}
           placeholder={t('products.pickerPlaceholder')}
           autoFocus={autoFocus}
+          inputRef={inputRef}
           error={error}
           helperText={helperText}
           size={size}

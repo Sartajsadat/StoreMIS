@@ -4,10 +4,10 @@ import { formatMoney } from '../../utils/format';
 import Ltr from '../display/Ltr';
 
 /**
- * Balances per currency, never added together. For suppliers a positive amount is what we owe;
- * a negative amount is the supplier's credit with us.
+ * Balances per currency, never added together. A positive amount is what is owed (to the supplier, or by the
+ * customer); a negative amount is credit in the other direction.
  */
-export default function BalanceChips({ balances, size = 'small', emptyText }) {
+export default function BalanceChips({ balances, size = 'small', emptyText, owedLabel, creditLabel }) {
   const { t } = useTranslation();
   const entries = Object.entries(balances ?? {}).filter(([, v]) => Number(v) !== 0);
   if (entries.length === 0) {
@@ -28,7 +28,7 @@ export default function BalanceChips({ balances, size = 'small', emptyText }) {
             color={negative ? 'success' : 'warning'}
             variant="outlined"
             label={<Ltr>{formatMoney(String(v).replace('-', ''), cur)}</Ltr>}
-            title={negative ? t('suppliers.credit') : t('suppliers.owed')}
+            title={negative ? creditLabel ?? t('suppliers.credit') : owedLabel ?? t('suppliers.owed')}
           />
         );
       })}
