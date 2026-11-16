@@ -66,4 +66,8 @@ Implemented so far:
   `returns` (sales returns with sellable/damaged lines, purchase returns; settled against the balance due first,
   then refunded in cash or kept as credit).
 
+- Phase 8: `reporting` (17 read-only SQL reports behind `GET /reports/{key}` with one column/row/totals format,
+  profit and loss per the posting rules, previous-period comparison) and `dashboard` (KPIs with trends, cash,
+  receivables/payables, stock alerts, charts, recent activity, and "My Day" for entry users).
+
 `mvn spring-boot:run` starts the API with a 512 MB memory limit (set in `pom.xml`), so it runs on small store PCs.

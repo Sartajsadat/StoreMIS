@@ -41,6 +41,12 @@ import InvoiceSettingsPage from '../modules/settings/InvoiceSettingsPage';
 import ExpensesPage from '../modules/finance/ExpensesPage';
 import CashClosingPage from '../modules/finance/CashClosingPage';
 import { PurchaseReturnsPage, SalesReturnsPage } from '../modules/returns/ReturnsPage';
+import DashboardPage from '../modules/dashboard/DashboardPage';
+import ProfitLossPage from '../modules/reports/ProfitLossPage';
+import ReportPrintPage from '../modules/print/ReportPrintPage';
+import {
+  CashReportsPage, CustomerBalancesPage, InventoryReportsPage, PurchaseReportsPage, SalesReportsPage, SupplierBalancesPage,
+} from '../modules/reports/ReportsPage';
 import { EXTRA_PAGES } from './extraPages';
 
 const UiKitPage = lazy(() => import('../modules/dev/UiKitPage'));
@@ -79,6 +85,14 @@ const PAGES = {
   purchaseReturns: PurchaseReturnsPage,
   expenses: ExpensesPage,
   dailyCashClosing: CashClosingPage,
+  dashboard: DashboardPage,
+  salesReports: SalesReportsPage,
+  purchaseReports: PurchaseReportsPage,
+  inventoryReports: InventoryReportsPage,
+  profitLoss: ProfitLossPage,
+  customerBalances: CustomerBalancesPage,
+  supplierBalances: SupplierBalancesPage,
+  cashReports: CashReportsPage,
 };
 
 export default function AppRoutes() {
@@ -95,6 +109,7 @@ export default function AppRoutes() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/print/sales/:id" element={<ReceiptPage />} />
+          <Route path="/print/reports/:key" element={<RequirePermission access={{ adminOnly: true }}><ReportPrintPage /></RequirePermission>} />
           <Route element={<AppLayout />}>
             {leaves.map((item) => {
               const Page = PAGES[item.key];

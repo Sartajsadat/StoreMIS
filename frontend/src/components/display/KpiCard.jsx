@@ -8,9 +8,10 @@ import Ltr from './Ltr';
  * Dashboard KPI tile. `value` is pre-formatted text (e.g. formatMoney(...)), so currencies are never mixed.
  * `trend` is a signed percentage string/number; `trendLabel` explains the comparison.
  */
-export default function KpiCard({ label, value, icon: Icon, color = 'primary', caption, trend, trendLabel, loading }) {
+export default function KpiCard({ label, value, icon: Icon, color = 'primary', caption, trend, trendLabel, loading, lowerIsBetter = false }) {
   const numericTrend = trend === undefined || trend === null ? null : Number(trend);
   const up = numericTrend !== null && numericTrend >= 0;
+  const good = lowerIsBetter ? !up || numericTrend === 0 : up;
   return (
     <Card sx={{ p: 2.5, height: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
@@ -42,7 +43,7 @@ export default function KpiCard({ label, value, icon: Icon, color = 'primary', c
       {(numericTrend !== null || caption) && (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1.5, flexWrap: 'wrap' }}>
           {numericTrend !== null && (
-            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: up ? 'success.main' : 'error.main', fontWeight: 600, fontSize: '0.8rem' }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: good ? 'success.main' : 'error.main', fontWeight: 600, fontSize: '0.8rem' }}>
               {up ? <TrendingUp sx={{ fontSize: 16 }} /> : <TrendingDown sx={{ fontSize: 16 }} />}
               <Ltr>{`${up ? '+' : ''}${numericTrend}%`}</Ltr>
             </Box>
