@@ -21,6 +21,16 @@ import StockOverviewPage from '../modules/inventory/StockOverviewPage';
 import StockMovementsPage from '../modules/inventory/StockMovementsPage';
 import StockAdjustmentsPage from '../modules/inventory/StockAdjustmentsPage';
 import LowStockPage from '../modules/inventory/LowStockPage';
+import SuppliersPage from '../modules/suppliers/SuppliersPage';
+import SupplierDetailPage from '../modules/suppliers/SupplierDetailPage';
+import SupplierPaymentsPage from '../modules/suppliers/SupplierPaymentsPage';
+import PurchaseFormPage from '../modules/purchases/PurchaseFormPage';
+import PurchaseHistoryPage from '../modules/purchases/PurchaseHistoryPage';
+import PurchaseDetailPage from '../modules/purchases/PurchaseDetailPage';
+import CashAccountsPage from '../modules/finance/CashAccountsPage';
+import CashTransactionsPage from '../modules/finance/CashTransactionsPage';
+import CurrencySettingsPage from '../modules/settings/CurrencySettingsPage';
+import { EXTRA_PAGES } from './extraPages';
 
 const UiKitPage = lazy(() => import('../modules/dev/UiKitPage'));
 
@@ -37,6 +47,16 @@ const PAGES = {
   stockMovements: StockMovementsPage,
   stockAdjustments: StockAdjustmentsPage,
   lowStock: LowStockPage,
+  supplierList: SuppliersPage,
+  supplierPayments: SupplierPaymentsPage,
+  newPurchase: PurchaseFormPage,
+  purchaseHistory: PurchaseHistoryPage,
+  cashAccounts: CashAccountsPage,
+  cashTransactions: CashTransactionsPage,
+  currencySettings: CurrencySettingsPage,
+  supplierDetail: SupplierDetailPage,
+  purchaseDetail: PurchaseDetailPage,
+  purchaseEdit: PurchaseFormPage,
 };
 
 export default function AppRoutes() {
@@ -62,6 +82,10 @@ export default function AppRoutes() {
                   element={<RequirePermission access={item.access}>{Page ? <Page /> : <ComingSoonPage item={item} />}</RequirePermission>}
                 />
               );
+            })}
+            {EXTRA_PAGES.filter((p) => PAGES[p.key]).map((p) => {
+              const Page = PAGES[p.key];
+              return <Route key={p.key} path={p.path} element={<RequirePermission access={p.access}><Page key={p.key} /></RequirePermission>} />;
             })}
             {import.meta.env.DEV && <Route path="/dev/ui-kit" element={<UiKitPage />} />}
             <Route path="/dashboard" element={<Navigate to="/" replace />} />

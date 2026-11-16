@@ -49,4 +49,10 @@ Implemented so far:
   `stock_movements` ledger row and updates the cached balance and weighted average cost in the same
   transaction. Sales and purchases will reuse it.
 
+- Phase 5: `currency` (exchange rates; every document keeps its own rate), `cash` (`CashPostingService` locks
+  the account, blocks negative cash and appends to the `cash_transactions` ledger), `supplier` (per-currency
+  payable ledger, statements, opening balances), `purchase` (drafts, confirm, cancel; `PurchaseCalculator`
+  spreads the overall discount into landed cost) and `payment` (supplier payments with oldest-first allocation,
+  advances, cross-currency payments, reversal).
+
 `mvn spring-boot:run` starts the API with a 512 MB memory limit (set in `pom.xml`), so it runs on small store PCs.

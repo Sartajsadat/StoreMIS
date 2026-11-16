@@ -15,7 +15,7 @@ React 19 + Vite · MUI · i18next · Recharts · Docker Compose · nginx.
 | 2 | UI/UX shell (layout, i18n, RTL, themes, shared components) | ✅ done — see [frontend/](frontend/README.md) |
 | 3 | Backend foundation (auth, users, security, audit) | ✅ done — see [backend/](backend/README.md) |
 | 4 | Products & inventory | ✅ done |
-| 5 | Purchasing | ⏳ |
+| 5 | Purchasing (+ cash accounts, exchange rates) | ✅ done |
 | 6 | Sales & POS | ⏳ |
 | 7 | Finance & returns | ⏳ |
 | 8 | Dashboard & reports | ⏳ |

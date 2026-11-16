@@ -31,6 +31,7 @@ export default function DateRangeFilter({ value, onChange }) {
         <>
           <DatePicker
             label={t('dateRange.from')}
+            format="YYYY-MM-DD"
             value={value?.from ? dayjs(value.from) : null}
             onChange={(d) => setCustom('from', d)}
             maxDate={value?.to ? dayjs(value.to) : undefined}
@@ -38,6 +39,7 @@ export default function DateRangeFilter({ value, onChange }) {
           />
           <DatePicker
             label={t('dateRange.to')}
+            format="YYYY-MM-DD"
             value={value?.to ? dayjs(value.to) : null}
             onChange={(d) => setCustom('to', d)}
             minDate={value?.from ? dayjs(value.from) : undefined}

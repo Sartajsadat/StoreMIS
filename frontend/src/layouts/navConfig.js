@@ -1,3 +1,4 @@
+import { matchPath } from 'react-router-dom';
 import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
 import PointOfSaleOutlined from '@mui/icons-material/PointOfSaleOutlined';
 import Inventory2Outlined from '@mui/icons-material/Inventory2Outlined';
@@ -83,8 +84,8 @@ export const NAV = [
     labelKey: 'nav.finance',
     icon: AccountBalanceWalletOutlined,
     children: [
-      { key: 'cashAccounts', labelKey: 'nav.cashAccounts', path: '/finance/cash-accounts', phase: 7, access: { adminOnly: true } },
-      { key: 'cashTransactions', labelKey: 'nav.cashTransactions', path: '/finance/cash-transactions', phase: 7, access: { adminOnly: true } },
+      { key: 'cashAccounts', labelKey: 'nav.cashAccounts', path: '/finance/cash-accounts', phase: 5, access: { adminOnly: true } },
+      { key: 'cashTransactions', labelKey: 'nav.cashTransactions', path: '/finance/cash-transactions', phase: 5, access: { adminOnly: true } },
       { key: 'expenses', labelKey: 'nav.expenses', path: '/finance/expenses', phase: 7, access: { anyOf: [P.RECORD_EXPENSES] } },
       { key: 'dailyCashClosing', labelKey: 'nav.dailyCashClosing', path: '/finance/cash-closing', phase: 7, access: { adminOnly: true } },
     ],
@@ -120,7 +121,7 @@ export const NAV = [
     icon: SettingsOutlined,
     children: [
       { key: 'businessSettings', labelKey: 'nav.businessSettings', path: '/settings/business', phase: 3, access: { adminOnly: true } },
-      { key: 'currencySettings', labelKey: 'nav.currencySettings', path: '/settings/currency', phase: 7, access: { adminOnly: true } },
+      { key: 'currencySettings', labelKey: 'nav.currencySettings', path: '/settings/currency', phase: 5, access: { adminOnly: true } },
       { key: 'invoiceSettings', labelKey: 'nav.invoiceSettings', path: '/settings/invoice', phase: 6, access: { adminOnly: true } },
       { key: 'appearance', labelKey: 'nav.appearance', path: '/settings/appearance' },
     ],
@@ -142,8 +143,11 @@ export function flattenNav(nav = NAV) {
   );
 }
 
-/** Finds the leaf item whose path matches exactly (used for title + breadcrumbs). */
+/**
+ * Finds the page for a URL (used for title + breadcrumbs). Menu items match exactly; extra pages may use
+ * route patterns such as /purchases/:id.
+ */
 export function findNavTrail(pathname, extra = []) {
-  const leaf = [...flattenNav(), ...extra].find((i) => i.path === pathname);
+  const leaf = flattenNav().find((i) => i.path === pathname) ?? extra.find((i) => matchPath({ path: i.path, end: true }, pathname));
   return leaf ? { item: leaf, group: leaf.group } : null;
 }

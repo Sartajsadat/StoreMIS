@@ -50,7 +50,9 @@ export default function ProductPicker({ value, onChange, label, autoFocus, error
         if (e.key === 'Enter' && input.trim()) {
           const exact = options.find((o) => o.code && o.code.toLowerCase() === input.trim().toLowerCase());
           if (exact) {
+            // Stop MUI from also selecting the highlighted option, which would add the product twice.
             e.preventDefault();
+            e.defaultMuiPrevented = true;
             onChange(exact);
           }
         }
