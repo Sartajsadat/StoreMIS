@@ -132,6 +132,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Modest memory for small store PCs (mvn spring-boot:run). -->
+                    <jvmArguments>-Xms128m -Xmx512m</jvmArguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

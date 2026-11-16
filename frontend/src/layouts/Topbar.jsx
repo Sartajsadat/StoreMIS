@@ -10,10 +10,12 @@ import ThemeToggle from './topbar/ThemeToggle';
 import NotificationsMenu from './topbar/NotificationsMenu';
 import UserMenu from './topbar/UserMenu';
 import DirectionalIcon from '../components/display/DirectionalIcon';
+import { useStockAlerts } from '../hooks/useStockAlerts';
 
 export default function Topbar({ title, crumbs = [], onToggleSidebar, sidebarCollapsed, isMobile }) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const alerts = useStockAlerts();
   const toggleLabel = isMobile ? t('topbar.toggleSidebar') : sidebarCollapsed ? t('topbar.expandSidebar') : t('topbar.collapseSidebar');
 
   return (
@@ -54,7 +56,7 @@ export default function Topbar({ title, crumbs = [], onToggleSidebar, sidebarCol
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.5 }, color: 'text.secondary' }}>
           <LanguageMenu />
           <ThemeToggle />
-          <NotificationsMenu />
+          <NotificationsMenu items={alerts} />
           <Box sx={{ ml: 0.5 }}>
             <UserMenu compact={isMobile} />
           </Box>

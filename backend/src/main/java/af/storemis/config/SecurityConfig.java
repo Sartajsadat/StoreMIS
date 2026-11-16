@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .headers(h -> h.referrerPolicy(r -> r.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/settings/public", "/api/v1/files/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/settings/public", "/api/v1/files/public/**", "/api/v1/files/products/**").permitAll()
                         .requestMatchers("/actuator/health", "/api/docs/**", "/api/swagger-ui/**", "/api/swagger-ui.html").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())

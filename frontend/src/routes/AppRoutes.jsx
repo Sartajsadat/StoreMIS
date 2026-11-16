@@ -14,6 +14,13 @@ import AppearancePage from '../modules/settings/AppearancePage';
 import BusinessSettingsPage from '../modules/settings/BusinessSettingsPage';
 import UsersPage from '../modules/users/UsersPage';
 import ActivityLogsPage from '../modules/audit/ActivityLogsPage';
+import ProductListPage from '../modules/products/ProductListPage';
+import CategoriesPage from '../modules/products/CategoriesPage';
+import UnitsPage from '../modules/products/UnitsPage';
+import StockOverviewPage from '../modules/inventory/StockOverviewPage';
+import StockMovementsPage from '../modules/inventory/StockMovementsPage';
+import StockAdjustmentsPage from '../modules/inventory/StockAdjustmentsPage';
+import LowStockPage from '../modules/inventory/LowStockPage';
 
 const UiKitPage = lazy(() => import('../modules/dev/UiKitPage'));
 
@@ -23,6 +30,13 @@ const PAGES = {
   businessSettings: BusinessSettingsPage,
   users: UsersPage,
   activityLogs: ActivityLogsPage,
+  productList: ProductListPage,
+  categories: CategoriesPage,
+  units: UnitsPage,
+  stockOverview: StockOverviewPage,
+  stockMovements: StockMovementsPage,
+  stockAdjustments: StockAdjustmentsPage,
+  lowStock: LowStockPage,
 };
 
 export default function AppRoutes() {

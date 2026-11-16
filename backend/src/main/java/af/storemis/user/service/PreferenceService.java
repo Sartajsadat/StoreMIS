@@ -3,7 +3,6 @@ package af.storemis.user.service;
 import af.storemis.common.time.BusinessClock;
 import af.storemis.settings.service.SettingsService;
 import af.storemis.user.dto.PreferencesDto;
-import af.storemis.user.entity.UserPreference;
 import af.storemis.user.repository.UserPreferenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,12 +32,7 @@ public class PreferenceService {
 
     @Transactional
     public PreferencesDto update(Long userId, PreferencesDto dto) {
-        UserPreference p = repository.findById(userId).orElseGet(() -> new UserPreference(userId, dto.language(), dto.theme()));
-        p.setLanguage(dto.language());
-        p.setTheme(dto.theme());
-        p.setSidebarCollapsed(dto.sidebarCollapsed());
-        p.setUpdatedAt(clock.now());
-        repository.save(p);
+        repository.upsert(userId, dto.language(), dto.theme(), dto.sidebarCollapsed(), clock.now());
         return dto;
     }
 }

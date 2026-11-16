@@ -28,7 +28,20 @@ public class FileController {
     /** Public files (the business logo). File names are random UUIDs, so they can be cached for a long time. */
     @GetMapping("/public/{name}")
     public ResponseEntity<Resource> publicFile(@PathVariable String name) {
-        Path p = storage.resolve(Area.PUBLIC, name).orElseThrow(() -> new NotFoundException("File", name));
+        return serve(Area.PUBLIC, name);
+    }
+
+    /**
+     * Product images. Served without a token so plain {@code <img>} tags work; names are random UUIDs and the
+     * images are not sensitive.
+     */
+    @GetMapping("/products/{name}")
+    public ResponseEntity<Resource> productImage(@PathVariable String name) {
+        return serve(Area.PRODUCTS, name);
+    }
+
+    private ResponseEntity<Resource> serve(Area area, String name) {
+        Path p = storage.resolve(area, name).orElseThrow(() -> new NotFoundException("File", name));
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePublic())
                 .contentType(MediaType.parseMediaType(storage.contentType(p))).header("X-Content-Type-Options", "nosniff")
                 .body(new FileSystemResource(p));

@@ -42,4 +42,11 @@ Controllers never touch repositories, and money/quantity fields are never `float
 enforced by `ArchitectureTest`. Errors are returned as language-neutral codes (`ErrorCode`) that the frontend
 translates.
 
-Implemented so far (Phase 3): `auth`, `user`, `audit`, `settings`, `files`, plus `common` and `config`.
+Implemented so far:
+- Phase 3: `auth`, `user`, `audit`, `settings`, `files`, plus `common` and `config`
+- Phase 4: `numbering` (gap-free document numbers), `catalog` (categories, units), `product`, and `inventory`.
+  All stock changes go through `InventoryPostingService`. It locks the product's stock row, appends a
+  `stock_movements` ledger row and updates the cached balance and weighted average cost in the same
+  transaction. Sales and purchases will reuse it.
+
+`mvn spring-boot:run` starts the API with a 512 MB memory limit (set in `pom.xml`), so it runs on small store PCs.

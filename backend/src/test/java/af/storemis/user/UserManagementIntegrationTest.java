@@ -141,6 +141,25 @@ class UserManagementIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void simultaneousPreferenceSavesDoNotCollide() throws Exception {
+        String token = api.createReadyUser(admin, "prefs.race", "ENTRY_USER", List.of());
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(6);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var futures = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
+        for (int i = 0; i < 6; i++) {
+            String lang = i % 2 == 0 ? "fa" : "ps";
+            futures.add(pool.submit(() -> {
+                start.await();
+                return mvc.perform(put("/api/v1/me/preferences").header("Authorization", bearer(token)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"language\":\"" + lang + "\",\"theme\":\"dark\",\"sidebarCollapsed\":false}")).andReturn().getResponse().getStatus();
+            }));
+        }
+        start.countDown();
+        for (var f : futures) assertThat(f.get()).isEqualTo(200);
+        pool.shutdown();
+    }
+
+    @Test
     void auditLogCanBeFilteredByModuleAndAction() throws Exception {
         mvc.perform(get("/api/v1/audit-logs?module=AUTH&action=LOGIN&size=5").header("Authorization", bearer(admin)))
                 .andExpect(status().isOk())
